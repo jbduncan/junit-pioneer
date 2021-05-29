@@ -1,116 +1,116 @@
 Extension `ResourceManager` looks for fields and
-parameters annotated with `@New` or `@Shared`.
+parameters annotated with `@New` `@Share` and `@Shared`.
 
-`@New` accepts a Class that implements `ResourceSupplier<T>`.
-For example, `@New(TemporaryDirectory.class)`
+`@New` is a field/parameter-level annotation that accepts
+a Class that implements `ResourceSupplier<T>`. For example,
+`@New(TemporaryDirectory.class)`
 
-`@Shared` accepts a Class that implements
-`ResourceSupplier<T>`, as well as a String name.
-For example,
-`@Shared(name = "aGlobalTempDirectory", value = TemporaryDirectory.class)`
+`@Share` is a class-level annotation that accepts a Class
+that implements `ResourceSupplier<T>`, as well as a String
+name. For example,
+`@Share(name = "aClassWideTempDirectory", value = TemporaryDirectory.class)`
 
-When a field in a test class or a parameter in a test method
-method is annotated with `@New`, it checks if the given class
-implements `ResourceSupplier` and has a no-args constructor.
-If so, it creates a new instance of the `ResourceSupplier`
-implementation and asks it for a `T` with
-`ResourceSupplier::get`.
+`@Shared` is a field/paramter-level annotation that accepts
+a String value. For example,
+`@Shared("aClassWideTempDirectory")`
 
-When a field/parameter is annotated with `@Shared`, the
-`ResourceSupplier` instance will be instantiated and saved
-until the test plan run finishes. The `ResourceSupplier`s
-(and thus the `T`s) are saved with a key, where this key
-comes from `@Shared`'s String name field. Thus this allows
-`T`s to be reused across tests.
+When a parameter in a test method is annotated with `@New`,
+it checks if the given class implements `ResourceSupplier`
+and has a no-args constructor. If so, it creates a new
+instance of the `ResourceSupplier` implementation and asks
+it for a `T` with `ResourceSupplier::get`. If `@New` is
+used on a test method parameter, the associated
+`ResourceSupplier` (and thus the contained `T`) only lasts
+as long as the test does and is "torn down" straight
+afterwards. If `@New` is used on a test class field, the
+associated `ResourceSupplier` is instantiated anew before
+and "torn down" immediately after each and every test
+method in the test class.
 
-When a field or parameter goes "out of scope", it calls the
-`ResourceSupplier` implementation's `close` method on the
-field/parameter's instance of `T`.
+When a test class is annotated with `@Share`, it checks if
+the given class implements `ResourceSupplier` and has a
+no-args constructor. If so, the `ResourceSupplier` instance
+will be instantiated and saved until all the test methods
+in that class have been run, at which point it will be
+"torn down". The `ResourceSupplier` (and thus the contained
+`T`) is saved with a key, where this key comes from
+`@Share`'s String name field. This allows the `T` to be
+reused across tests in the test class.
 
-A field is considered out of scope if the associated test
-class has been torn down by JUnit 5.
-(By default, JUnit 5 creates a new instance of the test class
-for each test method in the class, but the same test class
-instance can be used for all test methods with
-[`@TestInstance(Lifecycle.PER_CLASS)`](https:junit.org/junit5/docs/current/user-guide/#writing-tests-test-instance-lifecycle).)
+When a field or test method parameter is annotated with
+`@Shared`, it finds a `@Share` annotation on the same test
+class whose String name matches the `@Shared`'s String
+value. If such a `@Share` can be found, then the field or 
+parameter annotated with `@Shared` is populated with the 
+`T` from the `ResourceSupplier` from the `@Share`.
 
-A parameter is considered out of scope if its associated test
-method has finished.
+When a `@New` or `@Share` is "torn down",
+it calls the `ResourceSupplier` implementation's `close`
+method on the field/parameter's instance of `T`.
 
 For example:
 
 ```java
 @ExtendWith(ResourceManager.class)
 class FooTests {
-  
-  final Path firstDirectory;
 
-  // Creates a mew instance of `Path` that points to a new
-  // subdirectory of the machine's temporary directory.
+  // Before each test method, this annotation creates a new
+  // instance of `Path` that points to a new subdirectory of
+  // the machine's temporary directory.
   //
-  // It is closed when the `FooTests` instance is torn down
-  // by JUnit 5.
-  FooTests(@New(TemporaryDirectory.class) Path firstDirectory) {
-    this.firstDirectory = firstDirectory;
-  }
-  
-  // Creates an instance of `Path` that points to a
-  // second temporary subdirectory, completely different
-  // from "firstDirectory" above.
-  //
-  // It is also closed when the `FooTests` instance is
-  // torn down.
+  // After each test method, it is torn down, ready to be recreated
+  // for the next test method.
   @New(TemporaryDirectory.class)
-  final Path secondDirectory;
+  Path firstDirectory;
   
   @Test
   void testFoo1(
-      // Creates a `Path` pointing to a temporary directory.
-      // This time, it is closed as soon as `testFoo` is
-      // finished.
-      @New(TemporaryDirectory.class) Path thirdDirectory,
+      // Creates a `Path` pointing to another
+      // temporary directory.
+      //
+      // It is created before this test method starts,
+      // and is closed as soon as this method is finished.
+      @New(TemporaryDirectory.class) Path secondDirectory,
 
       // @Dir is a shortcut for @New(TempDirectory.class).
-      @Dir Path fourthDirectory,
+      @Dir Path thirdDirectory,
 
-      // Thus fifthDirectory is different to fourthDirectory.
-      @Dir Path fifthDirectory, 
+      // Thus fourthDirectory is different to thirdDirectory.
+      @Dir Path fourthDirectory, 
       
-      // Creates a new resource provided by a new instance of
-      // a user-defined `InMemoryDirectory` resource supplier.
+      // Creates a new resource for the duration of this
+      // test method, which is provided by a new, user-defined
+      // `InMemoryDirectory` resource supplier.
       // (See InMemoryDirectory class below.)
       @New(InMemoryDirectory.class) Path inMemoryDirectory) {
     // ...
   }
-  
-  @Test
-  void testFoo2(
-      // This temporary directory is saved until the very end
-      // of the entire test plan run. This means that it can
-      // be referred to in other tests with the key
-      // "aGlobalTempDirectory".
-      @Shared(name = "aGlobalTempDirectory", value = TemporaryDirectory.class)
-      Path aGlobalTempDirectory) {
-    Files.writeString(aGlobalTempDirectory.resolve("foo.txt"), "foo");
-  }
 }
 
 @ExtendWith(ResourceManager.class)
+@Share(name = "aClassWideTempDirectory", value = TemporaryDirectory.class)
 class BarTests {
   @Test
   void testBar(
-      // The key "aGlobalTempDirectory" was also used
-      // in the @Shared annotation on FooTests::testFoo2.
-      // Thus the temporary directory here is the same as
-      // the one in that other test.
-      @Shared(name = "aGlobalTempDirectory", value = TemporaryDirectory.class)
-      Path aGlobalTempDirectory) {
-    Files.writeString(aGlobalTempDirectory.resolve("bar.txt"), "bar");
+      // The key "aClassWideTempDirectory" below references
+      // the @Share annotation above.
+      // Thus the temporary directory here...
+      @Shared("aClassWideTempDirectory")
+      Path aClassWideTempDirectory) {
+    Files.writeString(aClassWideTempDirectory.resolve("bar.txt"), "bar1");
+  }
+  
+  @Test
+  void testBar2(
+      // ...is the same temporary directory as here!
+      @Shared("aClassWideTempDirectory")
+      Path aClassWideTempDirectory) {
+    Files.writeString(aClassWideTempDirectory.resolve("bar.txt"), "bar2");
   }
 }
 
-// At the end, "aGlobalTempDirectory" will have both
-// "foo.txt" and "bar.txt".
+// At the end, "aClassWideTempDirectory" will have a
+// "bar.txt" file with lines "bar1" and "bar2".
 ```
 
 ```java
@@ -127,8 +127,7 @@ public final class TemporaryDirectory implements ResourceSupplier<Path> {
   
   @Override
   public Path get() {
-    // returns a new subdirectory on the machine-wide
-    // temporary directory
+    // returns the subdirectory above
     return path;
   }
   
@@ -182,7 +181,8 @@ import mockwebserver3.MockWebServer;
 
 // We can even create a resource supplier that holds an OkHttp mock web server!
 public final class WebServer implements ResourceSupplier<Path> {
-  
+    
+  // Another example of a resource that eventually needs to be closed.
   private final MockWebServer mockWebServer;
   
   public WebServer() {
