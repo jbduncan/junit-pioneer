@@ -1,24 +1,37 @@
-package org.junitpioneer.jupiter.collect;
+/*
+ * Copyright 2024 the original author or authors.
+ *
+ * All rights reserved. This program and the accompanying materials are
+ * made available under the terms of the Eclipse Public License v2.0 which
+ * accompanies this distribution and is available at
+ *
+ * http://www.eclipse.org/legal/epl-v20.html
+ */
 
-import org.junit.jupiter.api.DynamicNode;
-import org.junit.jupiter.api.TestFactory;
+package org.junitpioneer.jupiter.collect;
 
 import java.util.Set;
 import java.util.stream.Stream;
 
+import org.junit.jupiter.api.DynamicNode;
+import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.TestFactory;
+
 public interface IterableContract<E> {
-  TestIterableGenerator<E> generator();
 
-  SampleElements<E> samples();
+	TestIterableGenerator<E> generator();
 
-  default Set<Feature<Iterable<E>>> features() {
-    // TODO
-    throw new UnsupportedOperationException("Not yet implemented");
-  }
+	SampleElements<E> samples();
 
-  @TestFactory
-  default Stream<DynamicNode> iterable() {
-    // TODO
-    return Stream.of();
-  }
+	default Set<Feature<Iterable<E>>> features() {
+		// TODO
+		throw new UnsupportedOperationException("Not yet implemented");
+	}
+
+	@TestFactory
+	default Stream<DynamicNode> iterable() {
+		return Stream.of(DynamicTest.dynamicTest("foo", () -> {
+		}));
+	}
+
 }
