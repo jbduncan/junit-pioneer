@@ -6,7 +6,7 @@ public class SampleElements<E> {
     throw new UnsupportedOperationException("Not yet implemented");
   }
 
-  public static <E> SampleElements<E> of(E e0, E e1, E e2, E missing) {
+  private static <E> SampleElements<E> of(E e0, E e1, E e2, E missing) {
     // TODO
     throw new UnsupportedOperationException("Not yet implemented");
   }
