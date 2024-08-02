@@ -12,34 +12,32 @@ package org.junitpioneer.jupiter.collect;
 
 public class SampleElements<E> {
 
-	public static SampleElements<String> strings() {
-		// TODO
-		throw new UnsupportedOperationException("Not yet implemented");
-	}
+	private final E e0;
+	private final E e1;
+	private final E e2;
+	private final E missing;
 
-	private static <E> SampleElements<E> of(E e0, E e1, E e2, E missing) {
-		// TODO
-		throw new UnsupportedOperationException("Not yet implemented");
+	public static SampleElements<String> strings() {
+		return new SampleElements<>("a", "b", "c", "missing");
 	}
 
 	private SampleElements(E e0, E e1, E e2, E missing) {
-		// TODO
-		throw new UnsupportedOperationException("Not yet implemented");
+		this.e0 = e0;
+		this.e1 = e1;
+		this.e2 = e2;
+		this.missing = missing;
 	}
 
 	public E e0() {
-		// TODO
-		throw new UnsupportedOperationException("Not yet implemented");
+		return e0;
 	}
 
 	public E e1() {
-		// TODO
-		throw new UnsupportedOperationException("Not yet implemented");
+		return e1;
 	}
 
 	public E e2() {
-		// TODO
-		throw new UnsupportedOperationException("Not yet implemented");
+		return e2;
 	}
 
 	/**
@@ -47,8 +45,7 @@ public class SampleElements<E> {
 	 * given collection <i>does not</i> contain a certain element.
 	 */
 	public E missing() {
-		// TODO
-		throw new UnsupportedOperationException("Not yet implemented");
+		return missing;
 	}
 
 }
