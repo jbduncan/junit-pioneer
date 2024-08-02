@@ -31,7 +31,7 @@ public interface IterableContract<E> {
 
 	@TestFactory
 	default Stream<DynamicNode> iterable() {
-		return Stream.of(dynamicTest("foo", () -> {
+		return Stream.of(dynamicTest("operation sequence: next(), next(), next(), next(), next(), next()", () -> {
 		}));
 	}
 

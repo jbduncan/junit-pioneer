@@ -10,14 +10,21 @@
 
 package org.junitpioneer.jupiter.collect;
 
+import static org.junit.platform.testkit.engine.EventConditions.dynamicTestRegistered;
+import static org.junit.platform.testkit.engine.EventConditions.event;
+import static org.junit.platform.testkit.engine.EventConditions.finishedSuccessfully;
+import static org.junit.platform.testkit.engine.EventConditions.started;
+import static org.junit.platform.testkit.engine.EventConditions.test;
+
 import java.util.List;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junitpioneer.testkit.PioneerTestKit;
 
 class IterableContractTests {
 
-	static final class ExampleIterableContractTestCase implements StringIterableContract {
+	static final class IterableContractForListOfTestCase implements StringIterableContract {
 
 		@Override
 		public TestIterableGenerator<String> generator() {
@@ -27,11 +34,18 @@ class IterableContractTests {
 	}
 
 	@Test
-	void exampleIterableContract() {
+	@DisplayName("IterableContract for List::of")
+	void iterableContractForListOf() {
 		PioneerTestKit
-				.executeTestClass(ExampleIterableContractTestCase.class)
-				.allEvents()
-				.assertStatistics(stats -> stats.dynamicallyRegistered(1));
+				.executeTestClass(IterableContractForListOfTestCase.class)
+				.testEvents()
+				.assertStatistics(stats -> stats.dynamicallyRegistered(1))
+				.assertEventsMatchExactly( //
+					event(dynamicTestRegistered("dynamic-test:#1")), //
+					event(test("dynamic-test:#1", "operation sequence: next(), next(), next(), next(), next(), next()"),
+						started()), //
+					event(test("dynamic-test:#1", "operation sequence: next(), next(), next(), next(), next(), next()"),
+						finishedSuccessfully()));
 	}
 
 }
