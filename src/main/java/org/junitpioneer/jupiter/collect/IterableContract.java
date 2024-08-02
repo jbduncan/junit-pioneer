@@ -10,11 +10,12 @@
 
 package org.junitpioneer.jupiter.collect;
 
+import static org.junit.jupiter.api.DynamicTest.dynamicTest;
+
 import java.util.Set;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.DynamicNode;
-import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
 public interface IterableContract<E> {
@@ -30,7 +31,7 @@ public interface IterableContract<E> {
 
 	@TestFactory
 	default Stream<DynamicNode> iterable() {
-		return Stream.of(DynamicTest.dynamicTest("foo", () -> {
+		return Stream.of(dynamicTest("foo", () -> {
 		}));
 	}
 
