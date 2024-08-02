@@ -11,7 +11,9 @@
 package org.junitpioneer.jupiter.collect;
 
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
+import static org.junitpioneer.jupiter.collect.IteratorOperation.HAS_NEXT;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -30,8 +32,20 @@ public interface IterableContract<E> {
 	}
 
 	@TestFactory
-	default Stream<DynamicNode> iterable() {
-		return Stream.of(dynamicTest("operation sequence: next(), next(), next(), next(), next(), next()", () -> {
+	default Stream<DynamicNode> iterableTests() {
+		var iterable = generator().create(samples());
+
+		// TODO: do all 4-element sequences comprising of NEXT and/or VALUE, i.e.:
+		//   - NEXT, NEXT, NEXT, NEXT
+		//   - NEXT, NEXT, NEXT, VALUE
+		//   - NEXT, NEXT, VALUE, NEXT
+		//   - ...
+		return Stream.of(dynamicTest("operation sequence: next(), next(), next(), next()", () -> {
+			var actualIterator = iterable.iterator();
+			var expectedElements = List.of(samples().e0(), samples().e1(), samples().e2());
+
+			new IteratorOperationSequence(HAS_NEXT, HAS_NEXT, HAS_NEXT, HAS_NEXT)
+					.check(actualIterator, expectedElements);
 		}));
 	}
 

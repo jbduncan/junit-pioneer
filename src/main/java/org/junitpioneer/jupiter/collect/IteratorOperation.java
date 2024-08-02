@@ -10,10 +10,6 @@
 
 package org.junitpioneer.jupiter.collect;
 
-public interface StringIterableContract extends IterableContract<String> {
-
-	default SampleElements<String> samples() {
-		return SampleElements.strings();
-	}
-
+enum IteratorOperation {
+	HAS_NEXT, VALUE, REMOVE
 }

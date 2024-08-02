@@ -16,7 +16,7 @@ import static org.junit.platform.testkit.engine.EventConditions.finishedSuccessf
 import static org.junit.platform.testkit.engine.EventConditions.started;
 import static org.junit.platform.testkit.engine.EventConditions.test;
 
-import java.util.List;
+import java.util.Iterator;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,27 +24,52 @@ import org.junitpioneer.testkit.PioneerTestKit;
 
 class IterableContractTests {
 
-	static final class IterableContractForListOfTestCase implements StringIterableContract {
+	static final class IterableContractForMinimalIterableTests implements StringIterableContract {
 
 		@Override
 		public TestIterableGenerator<String> generator() {
-			return List::of;
+			return MinimalIterable::new;
+		}
+
+	}
+
+	private static class MinimalIterable implements Iterable<String> {
+
+		public MinimalIterable(SampleElements<String> strings) {
+
+		}
+
+		@Override
+		public Iterator<String> iterator() {
+			return new Iterator<>() {
+
+				@Override
+				public boolean hasNext() {
+					return false;
+				}
+
+				@Override
+				public String next() {
+					return "unknown-string";
+				}
+
+			};
 		}
 
 	}
 
 	@Test
-	@DisplayName("IterableContract for List::of")
-	void iterableContractForListOf() {
+	@DisplayName("IterableContract for MinimalIterable")
+	void iterableContractForMinimalIterable() {
+		// TODO: test Iterator::(hasNext|value|remove) and Iterable::(forEachRemaining|spliterator)
 		PioneerTestKit
-				.executeTestClass(IterableContractForListOfTestCase.class)
+				.executeTestClass(IterableContractForMinimalIterableTests.class)
 				.testEvents()
 				.assertStatistics(stats -> stats.dynamicallyRegistered(1))
 				.assertEventsMatchExactly( //
 					event(dynamicTestRegistered("dynamic-test:#1")), //
-					event(test("dynamic-test:#1", "operation sequence: next(), next(), next(), next(), next(), next()"),
-						started()), //
-					event(test("dynamic-test:#1", "operation sequence: next(), next(), next(), next(), next(), next()"),
+					event(test("dynamic-test:#1", "operation sequence: next(), next(), next(), next()"), started()), //
+					event(test("dynamic-test:#1", "operation sequence: next(), next(), next(), next()"),
 						finishedSuccessfully()));
 	}
 
