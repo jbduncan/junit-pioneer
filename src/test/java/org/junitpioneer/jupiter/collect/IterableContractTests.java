@@ -84,15 +84,17 @@ class IterableContractTests {
 				.executeTestClass(IterableContractForMinimalIterableTests.class)
 				.testEvents()
 				.assertEventsMatchLoosely(Stream
-						.of(successfulDynamicTestConditions(1, "next(), next(), next(), next()"),
-							successfulDynamicTestConditions(2, "next(), next(), hasNext(), next()"),
-							successfulDynamicTestConditions(3, "next(), next(), next(), hasNext()"))
+						.of(successfulDynamicTestConditions("next(), next(), next(), next()"),
+							successfulDynamicTestConditions("next(), next(), hasNext(), next()"),
+							successfulDynamicTestConditions("next(), next(), next(), hasNext()"))
 						.flatMap(x -> x)
 						.toArray(Condition[]::new));
 	}
 
-	private static Stream<Condition<Event>> successfulDynamicTestConditions(int number, String operationSequence) {
-		var id = String.format("dynamic-test:#%d", number);
+	private static int nextId = 1;
+
+	private static Stream<Condition<Event>> successfulDynamicTestConditions(String operationSequence) {
+		var id = String.format("dynamic-test:#%d", nextId++);
 		var operationSequenceString = String.format("operation sequence: %s", operationSequence);
 		return Stream
 				.of(event(dynamicTestRegistered(id)), //
