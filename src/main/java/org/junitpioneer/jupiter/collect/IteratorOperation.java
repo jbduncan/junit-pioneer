@@ -11,5 +11,5 @@
 package org.junitpioneer.jupiter.collect;
 
 enum IteratorOperation {
-	HAS_NEXT, VALUE, REMOVE
+	HAS_NEXT, NEXT, REMOVE
 }
