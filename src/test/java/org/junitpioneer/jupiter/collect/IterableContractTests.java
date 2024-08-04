@@ -18,9 +18,12 @@ import static org.junit.platform.testkit.engine.EventConditions.test;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.stream.Stream;
 
+import org.assertj.core.api.Condition;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.platform.testkit.engine.Event;
 import org.junitpioneer.testkit.PioneerTestKit;
 
 class IterableContractTests {
@@ -74,24 +77,27 @@ class IterableContractTests {
 
 	@Test
 	@DisplayName("IterableContract for MinimalIterable")
+	@SuppressWarnings("unchecked")
 	void iterableContractForMinimalIterable() {
 		// TODO: test Iterator::(hasNext|value|remove) and Iterable::(forEachRemaining|spliterator)
 		PioneerTestKit
 				.executeTestClass(IterableContractForMinimalIterableTests.class)
 				.testEvents()
-				.assertEventsMatchLoosely( //
-					event(dynamicTestRegistered("dynamic-test:#1")), //
-					event(test("dynamic-test:#1", "operation sequence: next(), next(), next(), next()"), started()), //
-					event(test("dynamic-test:#1", "operation sequence: next(), next(), next(), next()"),
-						finishedSuccessfully()), //
-					event(dynamicTestRegistered("dynamic-test:#2")), //
-					event(test("dynamic-test:#2", "operation sequence: next(), next(), hasNext(), next()"), started()), //
-					event(test("dynamic-test:#2", "operation sequence: next(), next(), hasNext(), next()"),
-						finishedSuccessfully()), //
-					event(dynamicTestRegistered("dynamic-test:#3")), //
-					event(test("dynamic-test:#3", "operation sequence: next(), next(), next(), hasNext()"), started()), //
-					event(test("dynamic-test:#3", "operation sequence: next(), next(), next(), hasNext()"),
-						finishedSuccessfully()));
+				.assertEventsMatchLoosely(Stream
+						.of(successfulDynamicTestConditions(1, "next(), next(), next(), next()"),
+							successfulDynamicTestConditions(2, "next(), next(), hasNext(), next()"),
+							successfulDynamicTestConditions(3, "next(), next(), next(), hasNext()"))
+						.flatMap(x -> x)
+						.toArray(Condition[]::new));
+	}
+
+	private static Stream<Condition<Event>> successfulDynamicTestConditions(int number, String operationSequence) {
+		var id = String.format("dynamic-test:#%d", number);
+		var operationSequenceString = String.format("operation sequence: %s", operationSequence);
+		return Stream
+				.of(event(dynamicTestRegistered(id)), //
+					event(test(id, operationSequenceString), started()), //
+					event(test(id, operationSequenceString), finishedSuccessfully()));
 	}
 
 }
