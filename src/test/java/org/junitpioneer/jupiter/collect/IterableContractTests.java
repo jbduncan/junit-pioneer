@@ -11,17 +11,15 @@
 package org.junitpioneer.jupiter.collect;
 
 import static java.util.Collections.nCopies;
-import static org.junit.platform.testkit.engine.EventConditions.dynamicTestRegistered;
+import static org.junit.platform.testkit.engine.EventConditions.displayName;
 import static org.junit.platform.testkit.engine.EventConditions.event;
 import static org.junit.platform.testkit.engine.EventConditions.finishedSuccessfully;
-import static org.junit.platform.testkit.engine.EventConditions.started;
 import static org.junit.platform.testkit.engine.EventConditions.test;
 import static org.junitpioneer.internal.PioneerUtils.genericCartesianProduct;
 
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.stream.Stream;
 
 import org.assertj.core.api.Condition;
 import org.junit.jupiter.api.DisplayName;
@@ -92,23 +90,20 @@ class IterableContractTests {
 		PioneerTestKit
 				.executeTestClass(IterableContractForMinimalIterableTests.class)
 				.testEvents()
+				.assertStatistics(stats -> {
+					int numTests = 16;
+					stats.started(numTests).finished(numTests).succeeded(numTests);
+				})
 				.assertEventsMatchLoosely( //
 					allOperationSequences
 							.stream()
-							.flatMap(IterableContractTests::conditionsForSuccessfulTestOnOperationSequence)
+							.map(IterableContractTests::conditionForSuccessfulTestOnOperationSequence)
 							.toArray(Condition[]::new));
 	}
 
-	private static int nextId = 1;
-
-	private static Stream<Condition<Event>> conditionsForSuccessfulTestOnOperationSequence(
-			List<String> operationSequence) {
-		var id = "dynamic-test:#" + nextId++;
+	private static Condition<Event> conditionForSuccessfulTestOnOperationSequence(List<String> operationSequence) {
 		var operationSequenceString = "operation sequence: " + String.join(", ", operationSequence);
-		return Stream
-				.of(event(dynamicTestRegistered(id)), //
-					event(test(id, operationSequenceString), started()), //
-					event(test(id, operationSequenceString), finishedSuccessfully()));
+		return event(test(), displayName(operationSequenceString), finishedSuccessfully());
 	}
 
 }

@@ -29,7 +29,7 @@ final class IteratorOperationSequenceChecker<E> {
 	IteratorOperationSequenceChecker(Iterator<E> iterator, List<IteratorOperation> operationSequence,
 			SampleElements<E> expectedElements) {
 		this.iterator = iterator;
-		this.operationSequence = new ArrayList<>(operationSequence);
+		this.operationSequence = operationSequence;
 		this.expectedElements = expectedElements;
 	}
 
