@@ -163,6 +163,26 @@ public class PioneerUtils {
 		return resultLists;
 	}
 
+	public static <T> List<List<T>> genericCartesianProduct(List<List<T>> lists) {
+		List<List<T>> resultLists = new ArrayList<>();
+		if (lists.isEmpty()) {
+			resultLists.add(List.of());
+			return resultLists;
+		}
+		List<T> firstList = lists.get(0);
+		// Note the recursion here
+		List<List<T>> remainingLists = genericCartesianProduct(lists.subList(1, lists.size()));
+		for (T item : firstList) {
+			for (List<T> remainingList : remainingLists) {
+				ArrayList<T> resultList = new ArrayList<>();
+				resultList.add(item);
+				resultList.addAll(remainingList);
+				resultLists.add(resultList);
+			}
+		}
+		return resultLists;
+	}
+
 	public static Locale createLocale(String language, String country, String variant) {
 		return new Locale.Builder().setLanguage(language).setRegion(country).setVariant(variant).build();
 	}

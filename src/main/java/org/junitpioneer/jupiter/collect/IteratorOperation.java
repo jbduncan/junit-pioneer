@@ -11,5 +11,30 @@
 package org.junitpioneer.jupiter.collect;
 
 enum IteratorOperation {
-	HAS_NEXT, NEXT, REMOVE
+
+	HAS_NEXT {
+
+		@Override
+		public String toString() {
+			return "hasNext()";
+		}
+
+	},
+	NEXT {
+
+		@Override
+		public String toString() {
+			return "next()";
+		}
+
+	},
+	REMOVE {
+
+		@Override
+		public String toString() {
+			return "remove()";
+		}
+
+	}
+
 }

@@ -10,15 +10,17 @@
 
 package org.junitpioneer.jupiter.collect;
 
-import static org.junit.jupiter.api.DynamicTest.dynamicTest;
+import static java.util.Collections.nCopies;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toUnmodifiableList;
+import static org.junitpioneer.internal.PioneerUtils.genericCartesianProduct;
 import static org.junitpioneer.jupiter.collect.IteratorOperation.HAS_NEXT;
 import static org.junitpioneer.jupiter.collect.IteratorOperation.NEXT;
 
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Stream;
 
-import org.junit.jupiter.api.DynamicNode;
+import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
 public interface IterableContract<E> {
@@ -33,36 +35,35 @@ public interface IterableContract<E> {
 	}
 
 	@TestFactory
-	default Stream<DynamicNode> iterableTests() {
-
-		// TODO: do all 4-element sequences comprising of NEXT and/or HAS_NEXT, i.e.:
-		//   - NEXT, NEXT, NEXT, NEXT
-		//   - NEXT, NEXT, NEXT, HAS_NEXT
-		//   - NEXT, NEXT, HAS_NEXT, NEXT
-		//   - ...
+	default List<DynamicTest> iterableTests() {
 
 		// TODO: Give each dynamic test a URI Test Source:
 		//  https://junit.org/junit5/docs/current/user-guide/#writing-tests-dynamic-tests-uri-test-source
 
-		return Stream.of(dynamicTest("operation sequence: next(), next(), next(), next()", () -> {
-			var iterable = generator().create(samples());
-			var actualIterator = iterable.iterator();
-			var expectedElements = List.of(samples().e0(), samples().e1(), samples().e2());
+		int operationSequenceSize = 4;
+		var operations = List.of(HAS_NEXT, NEXT);
+		List<List<IteratorOperation>> allOperationSequences = //
+			genericCartesianProduct(nCopies(operationSequenceSize, operations));
 
-			new IteratorOperationSequence(NEXT, NEXT, NEXT, NEXT).check(actualIterator, expectedElements);
-		}), dynamicTest("operation sequence: next(), next(), hasNext(), next()", () -> {
-			var iterable = generator().create(samples());
-			var actualIterator = iterable.iterator();
-			var expectedElements = List.of(samples().e0(), samples().e1(), samples().e2());
+		return DynamicTest
+				.stream( //
+					allOperationSequences.stream(), //
+					IterableContract::operationSequenceDisplayName, //
+					this::testOperationSequence)
+				.collect(toUnmodifiableList());
+	}
 
-			new IteratorOperationSequence(NEXT, NEXT, HAS_NEXT, NEXT).check(actualIterator, expectedElements);
-		}), dynamicTest("operation sequence: next(), next(), next(), hasNext()", () -> {
-			var iterable = generator().create(samples());
-			var actualIterator = iterable.iterator();
-			var expectedElements = List.of(samples().e0(), samples().e1(), samples().e2());
+	private static String operationSequenceDisplayName(List<IteratorOperation> operationSequence) {
+		return "operation sequence: "
+				+ operationSequence.stream().map(IteratorOperation::toString).collect(joining(", "));
+	}
 
-			new IteratorOperationSequence(NEXT, NEXT, NEXT, HAS_NEXT).check(actualIterator, expectedElements);
-		}));
+	private void testOperationSequence(List<IteratorOperation> operationSequence) {
+		var iterable = generator().create(samples());
+		var actualIterator = iterable.iterator();
+		var expectedElements = samples();
+
+		new IteratorOperationSequenceChecker<>(actualIterator, operationSequence, expectedElements).check();
 	}
 
 }

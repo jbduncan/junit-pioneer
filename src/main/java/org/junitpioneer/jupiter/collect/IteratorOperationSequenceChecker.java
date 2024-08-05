@@ -20,23 +20,28 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-final class IteratorOperationSequence {
+final class IteratorOperationSequenceChecker<E> {
 
-	private final List<IteratorOperation> iteratorOperations;
+	private final Iterator<E> iterator;
+	private final List<IteratorOperation> operationSequence;
+	private final SampleElements<E> expectedElements;
 
-	IteratorOperationSequence(IteratorOperation... iteratorOperations) {
-		this.iteratorOperations = new ArrayList<>(List.of(iteratorOperations));
+	IteratorOperationSequenceChecker(Iterator<E> iterator, List<IteratorOperation> operationSequence,
+			SampleElements<E> expectedElements) {
+		this.iterator = iterator;
+		this.operationSequence = new ArrayList<>(operationSequence);
+		this.expectedElements = expectedElements;
 	}
 
-	<E> void check(Iterator<E> actualIterator, List<E> remainingExpectedElements) {
-		remainingExpectedElements = toMutableList(remainingExpectedElements);
-		for (var iteratorOperation : iteratorOperations) {
-			switch (iteratorOperation) {
+	void check() {
+		var remainingExpectedElements = toMutableList(expectedElements);
+		for (var operation : operationSequence) {
+			switch (operation) {
 				case HAS_NEXT:
-					doHasNextOpAndCheck(actualIterator, remainingExpectedElements);
+					doHasNextOpAndCheck(remainingExpectedElements);
 					break;
 				case NEXT:
-					doNextOpAndCheck(actualIterator, remainingExpectedElements);
+					doNextOpAndCheck(remainingExpectedElements);
 					break;
 				case REMOVE:
 					throw new UnsupportedOperationException("TODO"); // TODO
@@ -44,29 +49,29 @@ final class IteratorOperationSequence {
 		}
 	}
 
-	private static <E> List<E> toMutableList(List<E> remainingExpectedElements) {
-		return new ArrayList<>(remainingExpectedElements);
+	private static <E> List<E> toMutableList(SampleElements<E> samples) {
+		return new ArrayList<>(List.of(samples.e0(), samples.e1(), samples.e2()));
 	}
 
-	private <E> void doHasNextOpAndCheck(Iterator<E> actualIterator, List<E> remainingExpectedElements) {
-		if (!remainingExpectedElements.isEmpty()) {
+	private void doHasNextOpAndCheck(List<E> remainingExpectedElements) {
+		if (remainingExpectedElements.isEmpty()) {
 			// TODO: add a message parameter
-			assertTrue(actualIterator.hasNext());
+			assertFalse(iterator.hasNext());
 			return;
 		}
 
 		// TODO: add a message parameter
-		assertFalse(actualIterator.hasNext());
+		assertTrue(iterator.hasNext());
 	}
 
-	private <E> void doNextOpAndCheck(Iterator<E> actualIterator, List<E> remainingExpectedElements) {
+	private void doNextOpAndCheck(List<E> remainingExpectedElements) {
 		if (remainingExpectedElements.isEmpty()) {
 			// TODO: add a message parameter
-			assertThrows(NoSuchElementException.class, actualIterator::next);
+			assertThrows(NoSuchElementException.class, iterator::next);
 			return;
 		}
 
-		E nextValue = actualIterator.next();
+		E nextValue = iterator.next();
 
 		// TODO: add a message parameter
 		assertEquals(remainingExpectedElements.get(0), nextValue);
