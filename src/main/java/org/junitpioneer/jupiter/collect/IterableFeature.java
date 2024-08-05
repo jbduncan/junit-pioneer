@@ -14,7 +14,7 @@ import java.util.Set;
 
 public enum IterableFeature implements Feature<Iterable<?>> {
 
-	MODIFIABLE, KNOWN_ORDER;
+	KNOWN_ORDER, UNKNOWN_ORDER;
 
 	@Override
 	public Set<Feature<? super Iterable<?>>> impliedFeatures() {

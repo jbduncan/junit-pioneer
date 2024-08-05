@@ -25,12 +25,14 @@ final class IteratorOperationSequenceChecker<E> {
 	private final Iterator<E> iterator;
 	private final List<IteratorOperation> operationSequence;
 	private final SampleElements<E> expectedElements;
+	private final boolean knownOrder;
 
 	IteratorOperationSequenceChecker(Iterator<E> iterator, List<IteratorOperation> operationSequence,
-			SampleElements<E> expectedElements) {
+			SampleElements<E> expectedElements, boolean knownOrder) {
 		this.iterator = iterator;
 		this.operationSequence = operationSequence;
 		this.expectedElements = expectedElements;
+		this.knownOrder = knownOrder;
 	}
 
 	void check() {
@@ -73,11 +75,16 @@ final class IteratorOperationSequenceChecker<E> {
 
 		E nextValue = iterator.next();
 
-		// TODO: add a message parameter
-		assertEquals(remainingExpectedElements.get(0), nextValue);
-		remainingExpectedElements.remove(0);
+		if (knownOrder) {
+			assertEquals(remainingExpectedElements.get(0), nextValue);
+			remainingExpectedElements.remove(0);
+			return;
+		}
 
-		// TODO: deal with "unknown order" iterators, where the ordering isn't defined or consistent, like with set iterators
+		int index = remainingExpectedElements.indexOf(nextValue);
+		// TODO: add a message parameter
+		assertTrue(index >= 0);
+		remainingExpectedElements.remove(index);
 	}
 
 }

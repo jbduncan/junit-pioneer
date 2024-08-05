@@ -29,9 +29,8 @@ public interface IterableContract<E> {
 
 	SampleElements<E> samples();
 
-	default Set<Feature<Iterable<E>>> features() {
-		// TODO
-		throw new UnsupportedOperationException("Not yet implemented");
+	default Set<Feature<Iterable<?>>> features() {
+		return Set.of(IterableFeature.UNKNOWN_ORDER);
 	}
 
 	@TestFactory
@@ -69,8 +68,12 @@ public interface IterableContract<E> {
 		var actualIterator = iterable.iterator();
 		// TODO: test not null, possibly with PioneerPreconditions::notNull
 		var expectedElements = samples();
+		// TODO: test not null, possibly with PioneerPreconditions::notNull
+		var features = features();
 
-		new IteratorOperationSequenceChecker<>(actualIterator, operationSequence, expectedElements).check();
+		// TODO: test what happens when neither KNOWN_ORDER nor UNKNOWN_ORDER are provided.
+		new IteratorOperationSequenceChecker<>(actualIterator, operationSequence, expectedElements,
+			features.contains(IterableFeature.KNOWN_ORDER)).check();
 	}
 
 }
