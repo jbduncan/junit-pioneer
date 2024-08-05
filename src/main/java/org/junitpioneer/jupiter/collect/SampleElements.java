@@ -38,4 +38,8 @@ public final class SampleElements<E> {
 		return e2;
 	}
 
+	public int size() {
+		return 3;
+	}
+
 }

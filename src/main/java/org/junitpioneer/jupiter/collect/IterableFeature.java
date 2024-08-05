@@ -12,7 +12,7 @@ package org.junitpioneer.jupiter.collect;
 
 import java.util.Set;
 
-public enum IteratorFeature implements Feature<Iterable<?>> {
+public enum IterableFeature implements Feature<Iterable<?>> {
 
 	MODIFIABLE, KNOWN_ORDER;
 

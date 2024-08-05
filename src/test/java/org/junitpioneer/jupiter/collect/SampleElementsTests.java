@@ -20,8 +20,10 @@ class SampleElementsTests {
 	@Test
 	void strings() {
 		var strings = SampleElements.strings();
-		assertAll(() -> assertThat(strings.e0()).isEqualTo("a"), () -> assertThat(strings.e1()).isEqualTo("b"),
-			() -> assertThat(strings.e2()).isEqualTo("c"));
+		assertAll( //
+			() -> assertThat(strings.e0()).isEqualTo("a"), //
+			() -> assertThat(strings.e1()).isEqualTo("b"), //
+			() -> assertThat(strings.e2()).isEqualTo("c"), () -> assertThat(strings.size()).isEqualTo(3));
 	}
 
 }

@@ -40,7 +40,11 @@ public interface IterableContract<E> {
 		// TODO: Give each dynamic test a URI Test Source:
 		//  https://junit.org/junit5/docs/current/user-guide/#writing-tests-dynamic-tests-uri-test-source
 
-		int operationSequenceSize = 4;
+		// TODO: test samples() is not null, possibly with PioneerPreconditions::notNull
+
+		// +1 so that exhausted iterators are tested
+		int operationSequenceSize = samples().size() + 1;
+
 		var operations = List.of(HAS_NEXT, NEXT);
 		List<List<IteratorOperation>> allOperationSequences = //
 			genericCartesianProduct(nCopies(operationSequenceSize, operations));
@@ -59,8 +63,11 @@ public interface IterableContract<E> {
 	}
 
 	private void testOperationSequence(List<IteratorOperation> operationSequence) {
+		// TODO: test not null, possibly with PioneerPreconditions::notNull
 		var iterable = generator().create(samples());
+		// TODO: test not null, possibly with PioneerPreconditions::notNull
 		var actualIterator = iterable.iterator();
+		// TODO: test not null, possibly with PioneerPreconditions::notNull
 		var expectedElements = samples();
 
 		new IteratorOperationSequenceChecker<>(actualIterator, operationSequence, expectedElements).check();

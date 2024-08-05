@@ -29,7 +29,7 @@ import org.junitpioneer.testkit.PioneerTestKit;
 
 class IterableContractTests {
 
-	static final class IterableContractForMinimalIterableTests implements StringIterableContract {
+	static final class MinimalIterableTests implements StringIterableContract {
 
 		@Override
 		public TestIterableGenerator<String> generator() {
@@ -80,7 +80,8 @@ class IterableContractTests {
 	@DisplayName("IterableContract for MinimalIterable")
 	@SuppressWarnings("unchecked")
 	void iterableContractForMinimalIterable() {
-		// TODO: test Iterator::remove and Iterable::(forEachRemaining|spliterator)
+		// TODO: test Iterator::remove
+		// TODO: test Iterable::(forEachRemaining|spliterator)
 
 		int operationSequenceSize = 4;
 		var operations = List.of("hasNext()", "next()");
@@ -88,7 +89,7 @@ class IterableContractTests {
 			genericCartesianProduct(nCopies(operationSequenceSize, operations));
 
 		PioneerTestKit
-				.executeTestClass(IterableContractForMinimalIterableTests.class)
+				.executeTestClass(MinimalIterableTests.class) //
 				.testEvents()
 				.assertStatistics(stats -> {
 					int numTests = 16;
